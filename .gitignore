@@ -1,0 +1,27 @@
+# Ignorar arquivos de especificação
+*.spec
+
+# Pastas que você pediu para ignorar
+include/
+lib/
+scripts/
+.venv/
+
+# --- Itens extras recomendados ---
+
+# Python cache e arquivos compilados
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribuição / Build
+dist/
+build/
+*.egg-info/
+
+# Variáveis de ambiente (Segurança!)
+.env
+
+# Configurações de IDE
+.vscode/
+.idea/
