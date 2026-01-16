@@ -22,7 +22,7 @@ deste software. O uso é de inteira responsabilidade do usuário.
 ```
 MIT License
 
-Copyright (c) 2026 [Seu Nome ou Nome da Organização]
+Copyright (c) 2026 Prefeitura Municipal de Monte Santo de Minas
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
