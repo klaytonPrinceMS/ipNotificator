@@ -9,4 +9,3 @@ Acesse a documentação completa, guias de instalação e termos de licença MIT
 👉 **[https://klaytonprincems.github.io/ipNotificator/](https://klaytonprincems.github.io/ipNotificator/)**
 
 ---
-*Nota: Verifique os requisitos do sistema e a integração com amche.hve na documentação.*
