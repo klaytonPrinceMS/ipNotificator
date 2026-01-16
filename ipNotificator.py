@@ -7,6 +7,7 @@ TRANSPARENCIA = 0.25
 VERSAO = '1.0.20260115'
 COR_FUNDO = 'black'
 COR_FONTE = 'white'
+TAMANHO_FONTE = 10
 PREFIXO_REDE = '172.16.'  # Sua trava universal
 
 
@@ -23,7 +24,7 @@ def get_internal_ip():
 
         ips = [addr[4][0] for addr in addresses if ':' not in addr[4][0]]
 
-        # Procura por um IP que comece com o seu prefixo 172.16.
+        # Procura por um IP que comece com o seu prefixo definido na varialvem PREFIXO_REDE
         for ip in ips:
             if ip.startswith(PREFIXO_REDE):
                 return ip
@@ -59,8 +60,7 @@ class IPWidget:
         self.root.overrideredirect(True)
         self.root.configure(bg=COR_FUNDO)
 
-        self.label = tk.Label(root, text="", font=('Consolas', 10, 'bold'),
-                              fg=COR_FONTE, bg=COR_FUNDO)
+        self.label = tk.Label(root, text="", font=('Consolas', TAMANHO_FONTE, 'bold'), fg=COR_FONTE, bg=COR_FUNDO)
         self.label.place(relx=0.5, rely=0.5, anchor='center')
 
         self.label.bind('<Double-Button-1>', lambda e: self.root.destroy())
@@ -94,7 +94,6 @@ class IPWidget:
 if __name__ == "__main__":
     if os.name == 'nt':
         import ctypes
-
         try:
             ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
         except:

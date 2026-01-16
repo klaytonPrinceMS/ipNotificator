@@ -1,0 +1,7 @@
+site_name: DTI - PMMSM ipNotificator
+
+nav:
+  - Início: index.md
+  - Sobre: Sobre.md
+
+

@@ -11,7 +11,7 @@ Overlay transparente que exibe o IP interno da rede em tempo real no canto infer
 - Auto-posicionamento - funciona em qualquer resolução
 - Monitoramento automático de mudanças de IP/resolução
 - Fechar: Duplo clique no texto
-- Ultra leve: ~9 MB RAM, 0% CPU
+- Ultra leve: ~9 MB RAM, 0% CPU quando convertido para executavel
 
 ## Consumo de Recursos
 Memória RAM: 9 MB
@@ -23,46 +23,56 @@ Tamanho EXE: ~13 MB (PyInstaller)
 - Tkinter (padrão do Python)
 - Windows 10/11
 
+## Configurações Personalizáveis
+```
+TRANSPARENCIA   = 0.25          # 0.0 (invisível) a 1.0 (opaco)
+HORIZONTAL      = 110           # Distância da borda direita
+VERTICAL        = 60            # Distância da borda inferior
+COR_FUNDO       = 'black'       # Denição da cor de fundo
+COR_FONTE       = 'white'       # Definição da cor da fonte
+PREFIXO_REDE    = '172.16.'     # Sua trava universal
+```
+
+
+## Estrutura do Projeto
+```
+ip_flutuante/
+├── ip_flutuante.py      # Script principal
+├── README.md            # Este arquivo
+└── dist/
+    └── ipNotificator.py # Executável (após PyInstaller)
+```
 ## Instalação
 
 ### 1. Salvar Script
-Salve como ip_flutuante.py
+Recomendado salvar como ipNotificator.py
 
 ### 2. Executar Direto
-python ip_flutuante.py
+python ipNotificator.py
 
 ### 3. PyInstaller (Executável)
 pip install pyinstaller
-pyinstaller --onefile --noconsole --windowed ip_flutuante.py
+pyinstaller --onefile --noconsole --windowed ipNotificator.py
 
-## Configurações Personalizáveis
-TRANSPARENCIA = 0.25    # 0.0 (invisível) a 1.0 (opaco)
-HORIZONTAL = 110         # Distância da borda direita
-VERTICAL = 60            # Distância da borda inferior
-
-## Estrutura do Projeto
-ip_flutuante/
-├── ip_flutuante.py      # Script principal
-├── README.md           # Este arquivo
-└── dist/
-    └── ip_flutuante.exe # Executável (após PyInstaller)
 
 ## Funcionalidades Técnicas
-• Detecta IP interno (172.x.x.x preferencial)
-• Fallback: socket.gethostbyname()
-• Loop after(1000ms) - Zero CPU
-• winfo_screenwidth/height auto-ajuste
-• overrideredirect(True) - Sem bordas
-• place(relx=0.5, rely=0.5) - Centralizado
+1. Detecta IP interno (172.x.x.x preferencial)
+2. Fallback: socket.gethostbyname()
+3. Loop after(1000ms) - Zero CPU
+4. winfo_screenwidth/height auto-ajuste
+5. overrideredirect(True) - Sem bordas
+6. place(relx=0.5, rely=0.5) - Centralizado
+
 
 ## Posicionamento
 Canto inferior direito:
+```
 ┌─ 155px da direita ──┐
 │                     │
 │                 60px│ ← Distância da taskbar
 │   [ 172.16.254.13 ] │
 └─────────────────────┘
-
+```
 ## Como Usar
 1. Execute o script ou EXE
 2. IP aparece no canto inferior direito
@@ -77,12 +87,12 @@ IP não aparece:
 Posição errada:
 → Ajuste HORIZONTAL/VERTICAL
 
-Consumo muita RAM:
-→ Normal: 9 MB é OTIMIZADO!
+Consumo de RAM:
+→ Normal: 9 - 14 MB é OTIMIZADO!
 
 ## Licença
 MIT License - Uso livre para fins pessoais/commerciais
-© 2026 - IP Flutuante Monitor
+© 2026 - Prefeitura Municipal de Monte Santo de Minas
 
 ---
 Status: RODANDO PERFEITO | 9 MB RAM | 0% CPU
