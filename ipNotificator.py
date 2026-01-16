@@ -8,7 +8,7 @@ VERSAO = '1.0.20260115'
 COR_FUNDO = 'black'
 COR_FONTE = 'white'
 TAMANHO_FONTE = 10
-PREFIXO_REDE = '172.16.'  # Sua trava universal
+PREFIXO_REDE = '192.168.'  # Sua trava universal
 
 
 def get_internal_ip():
