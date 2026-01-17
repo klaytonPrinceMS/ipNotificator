@@ -8,7 +8,7 @@ VERSAO = '1.0.20260115'
 COR_FUNDO = 'black'
 COR_FONTE = 'white'
 TAMANHO_FONTE = 10
-PREFIXO_REDE = '192.168.'  # Sua trava universal
+PREFIXO_REDE = '192.168'  # Sua trava universal
 
 
 def get_internal_ip():
@@ -29,12 +29,12 @@ def get_internal_ip():
             if ip.startswith(PREFIXO_REDE):
                 return ip
 
-        # Caso não ache o 172.16, mas queira tentar outro método offline:
+        # Caso não ache o IP, mas queira tentar outro método offline:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.settimeout(0)
         try:
             # Não precisa de conexão real, apenas tenta "parear" com um IP da sub-rede
-            s.connect(('172.16.255.255', 1))
+            s.connect(('192.168.255.255', 1))
             ip_teste = s.getsockname()[0]
             if ip_teste.startswith(PREFIXO_REDE):
                 return ip_teste

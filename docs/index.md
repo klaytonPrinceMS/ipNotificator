@@ -7,7 +7,7 @@ Overlay transparente que exibe o IP interno da rede em tempo real no canto infer
 - Sempre visível (mas não atrapalha)
 - Fundo preto transparente (25% de opacidade)
 - Texto branco centralizado com fonte Consolas
-- Tamanho dinâmico - adapta ao IP (172.xxx.xxx.xxx)
+- Tamanho dinâmico - adapta ao IP (192.xxx.xxx.xxx)
 - Auto-posicionamento - funciona em qualquer resolução
 - Monitoramento automático de mudanças de IP/resolução
 - Fechar: Duplo clique no texto
@@ -30,7 +30,7 @@ HORIZONTAL      = 110           # Distância da borda direita
 VERTICAL        = 60            # Distância da borda inferior
 COR_FUNDO       = 'black'       # Denição da cor de fundo
 COR_FONTE       = 'white'       # Definição da cor da fonte
-PREFIXO_REDE    = '172.16.'     # Sua trava universal
+PREFIXO_REDE    = '192.168.'     # Sua trava universal
 ```
 
 
@@ -56,7 +56,7 @@ pyinstaller --onefile --noconsole --windowed ipNotificator.py
 
 
 ## Funcionalidades Técnicas
-1. Detecta IP interno (172.x.x.x preferencial)
+1. Detecta IP interno (192.x.x.x preferencial)
 2. Fallback: socket.gethostbyname()
 3. Loop after(1000ms) - Zero CPU
 4. winfo_screenwidth/height auto-ajuste
@@ -70,7 +70,7 @@ Canto inferior direito:
 ┌─ 155px da direita ──┐
 │                     │
 │                 60px│ ← Distância da taskbar
-│   [ 172.16.254.13 ] │
+│   [ 192.168.0.13 ] │
 └─────────────────────┘
 ```
 ## Como Usar
