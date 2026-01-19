@@ -141,7 +141,7 @@
 <li>Sempre visível (mas não atrapalha)</li>
 <li>Fundo preto transparente (25% de opacidade)</li>
 <li>Texto branco centralizado com fonte Consolas</li>
-<li>Tamanho dinâmico - adapta ao IP (172.xxx.xxx.xxx)</li>
+<li>Tamanho dinâmico - adapta ao IP (192.xxx.xxx.xxx)</li>
 <li>Auto-posicionamento - funciona em qualquer resolução</li>
 <li>Monitoramento automático de mudanças de IP/resolução</li>
 <li>Fechar: Duplo clique no texto</li>
@@ -163,7 +163,7 @@ HORIZONTAL      = 110           # Distância da borda direita
 VERTICAL        = 60            # Distância da borda inferior
 COR_FUNDO       = 'black'       # Denição da cor de fundo
 COR_FONTE       = 'white'       # Definição da cor da fonte
-PREFIXO_REDE    = '172.16.'     # Sua trava universal
+PREFIXO_REDE    = '192.168.'     # Sua trava universal
 </code></pre>
 <h2 id="estrutura-do-projeto">Estrutura do Projeto</h2>
 <pre><code>ip_flutuante/
@@ -182,7 +182,7 @@ PREFIXO_REDE    = '172.16.'     # Sua trava universal
 pyinstaller --onefile --noconsole --windowed ipNotificator.py</p>
 <h2 id="funcionalidades-tecnicas">Funcionalidades Técnicas</h2>
 <ol>
-<li>Detecta IP interno (172.x.x.x preferencial)</li>
+<li>Detecta IP interno (192.x.x.x preferencial)</li>
 <li>Fallback: socket.gethostbyname()</li>
 <li>Loop after(1000ms) - Zero CPU</li>
 <li>winfo_screenwidth/height auto-ajuste</li>
@@ -194,7 +194,7 @@ pyinstaller --onefile --noconsole --windowed ipNotificator.py</p>
 <pre><code>┌─ 155px da direita ──┐
 │                     │
 │                 60px│ ← Distância da taskbar
-│   [ 172.16.254.13 ] │
+│   [ 192.168.0.13 ] │
 └─────────────────────┘
 </code></pre>
 <h2 id="como-usar">Como Usar</h2>
@@ -298,5 +298,5 @@ pyinstaller --onefile --noconsole --windowed ipNotificator.py</p>
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-01-16 14:13:08.424951+00:00
+Build Date UTC : 2026-01-17 19:46:01.268646+00:00
 -->
