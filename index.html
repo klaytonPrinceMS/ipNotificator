@@ -76,7 +76,7 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#ipnotificator-ip-flutuante-monitor-de-rede" class="nav-link">ipNotificator - IP Flutuante - Monitor de Rede</a>
+            <li class="nav-item" data-bs-level="1"><a href="#ipnotificator-ip-flutuante-monitor-de-eventos" class="nav-link">ipNotificator - IP Flutuante &amp; Monitor de Eventos</a>
               <ul class="nav flex-column">
             <li class="nav-item" data-bs-level="2"><a href="#descricao" class="nav-link">Descrição</a>
               <ul class="nav flex-column">
@@ -98,11 +98,11 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#estrutura-do-projeto" class="nav-link">Estrutura do Projeto</a>
+            <li class="nav-item" data-bs-level="2"><a href="#configuracoes-personalizaveis_1" class="nav-link">Configurações Personalizáveis</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#instalacao" class="nav-link">Instalação</a>
+            <li class="nav-item" data-bs-level="2"><a href="#estrutura-do-projeto" class="nav-link">Estrutura do Projeto</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -110,15 +110,11 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#posicionamento" class="nav-link">Posicionamento</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
             <li class="nav-item" data-bs-level="2"><a href="#como-usar" class="nav-link">Como Usar</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#solucao-de-problemas" class="nav-link">Solução de Problemas</a>
+            <li class="nav-item" data-bs-level="2"><a href="#instalacao-e-compilacao" class="nav-link">Instalação e Compilação</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -133,9 +129,12 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="ipnotificator-ip-flutuante-monitor-de-rede">ipNotificator - IP Flutuante - Monitor de Rede</h1>
+<h1 id="ipnotificator-ip-flutuante-monitor-de-eventos">ipNotificator - IP Flutuante &amp; Monitor de Eventos</h1>
 <h2 id="descricao">Descrição</h2>
-<p>Overlay transparente que exibe o IP interno da rede em tempo real no canto inferior direito da tela. Perfeito para administradores de rede, desenvolvedores e técnicos.</p>
+<p>O <strong>ipNotificator</strong> é um overlay minimalista e ultra-leve projetado para exibir o endereço IP 
+interno da rede em tempo real, agora com um sistema integrado de <strong>datas comemorativas</strong>. 
+Posicionado discretamente no canto inferior direito, ele é a ferramenta ideal para administradores 
+de rede, desenvolvedores e técnicos que precisam dessa informação de forma rápida sem interrupções.</p>
 <h2 id="caracteristicas">Características</h2>
 <ul>
 <li>Sempre visível (mas não atrapalha)</li>
@@ -144,74 +143,100 @@
 <li>Tamanho dinâmico - adapta ao IP (192.xxx.xxx.xxx)</li>
 <li>Auto-posicionamento - funciona em qualquer resolução</li>
 <li>Monitoramento automático de mudanças de IP/resolução</li>
-<li>Fechar: Duplo clique no texto</li>
+<li>Fechar: Triplo clique no texto</li>
 <li>Ultra leve: ~9 MB RAM, 0% CPU quando convertido para executavel</li>
+<li><strong>Sistema de Datas Comemorativas</strong>: Exibe emojis e frases personalizadas em datas específicas (Natal, Ano Novo, Dia do Programador, etc.).</li>
+<li><strong>Menu de Contexto (Botão Direito)</strong>:<ul>
+<li><strong>Copiar IP</strong>: Copia instantaneamente o endereço para a área de transferência.</li>
+<li><strong>Atualizar</strong>: Força a atualização do IP e recarrega as datas.</li>
+<li><strong>Editar Datas</strong>: Interface gráfica integrada para adicionar ou modificar eventos.</li>
+</ul>
+</li>
+<li><strong>Otimização Extrema</strong>: Uso de cache global e Garbage Collector (GC) para manter o consumo de RAM entre 9MB e 14MB.</li>
+<li><strong>Easter Eggs</strong>: Interações especiais escondidas (como o modo antigravidade e o contador 42).</li>
 </ul>
 <h2 id="consumo-de-recursos">Consumo de Recursos</h2>
-<p>Memória RAM: 9 MB
-CPU: 0%
-Tamanho EXE: ~13 MB (PyInstaller)</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Recurso</th>
+<th style="text-align: left;">Desempenho</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Memória RAM</strong></td>
+<td style="text-align: left;">~9 MB (Otimizado com GC)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>CPU</strong></td>
+<td style="text-align: left;">0% (Monitoramento em background)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tamanho EXE</strong></td>
+<td style="text-align: left;">~13 MB (PyInstaller)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Refresh Rate</strong></td>
+<td style="text-align: left;">15 segundos (Inteligente)</td>
+</tr>
+</tbody>
+</table>
 <h2 id="requisitos">Requisitos</h2>
 <ul>
-<li>Python 3.6+</li>
-<li>Tkinter (padrão do Python)</li>
-<li>Windows 10/11</li>
+<li><strong>Python 3.6+</strong></li>
+<li><strong>Tkinter</strong> (Biblioteca padrão do Python)</li>
+<li><strong>Windows 10/11</strong> (Suporte a transparência e fontes do sistema)</li>
 </ul>
 <h2 id="configuracoes-personalizaveis">Configurações Personalizáveis</h2>
-<pre><code>TRANSPARENCIA   = 0.25          # 0.0 (invisível) a 1.0 (opaco)
+<p>As configurações principais podem ser ajustadas diretamente no topo do script:</p>
+<h2 id="configuracoes-personalizaveis_1">Configurações Personalizáveis</h2>
+<pre><code class="language-python">
+TRANSPARENCIA   = 0.25          # 0.0 (invisível) a 1.0 (opaco)
 HORIZONTAL      = 110           # Distância da borda direita
 VERTICAL        = 60            # Distância da borda inferior
 COR_FUNDO       = 'black'       # Denição da cor de fundo
 COR_FONTE       = 'white'       # Definição da cor da fonte
-PREFIXO_REDE    = '192.168.'     # Sua trava universal
+PREFIXO_REDE    = '192.168.'    # Sua trava universal
+TAMANHO_FONTE   = 10            # Tamanho da fonte Consolas/Segoe UI
+CONFIG_FILE     = 'ip_widget_datas.json' # Arquivo de armazenamento das datas
 </code></pre>
 <h2 id="estrutura-do-projeto">Estrutura do Projeto</h2>
-<pre><code>ip_flutuante/
-├── ip_flutuante.py      # Script principal
-├── README.md            # Este arquivo
+<pre><code class="language-text">ip_flutuante/
+├── ipNotificator.py      # Script principal (v1.3)
+├── ip_widget_datas.json  # Banco de dados de eventos (gerado automaticamente)
+├── README.md             # Documentação do projeto
 └── dist/
-    └── ipNotificator.py # Executável (após PyInstaller)
+    └── ipNotificator.exe # Executável final
 </code></pre>
-<h2 id="instalacao">Instalação</h2>
-<h3 id="1-salvar-script">1. Salvar Script</h3>
-<p>Recomendado salvar como ipNotificator.py</p>
-<h3 id="2-executar-direto">2. Executar Direto</h3>
-<p>python ipNotificator.py</p>
-<h3 id="3-pyinstaller-executavel">3. PyInstaller (Executável)</h3>
-<p>pip install pyinstaller
-pyinstaller --onefile --noconsole --windowed ipNotificator.py</p>
 <h2 id="funcionalidades-tecnicas">Funcionalidades Técnicas</h2>
 <ol>
-<li>Detecta IP interno (192.x.x.x preferencial)</li>
-<li>Fallback: socket.gethostbyname()</li>
-<li>Loop after(1000ms) - Zero CPU</li>
-<li>winfo_screenwidth/height auto-ajuste</li>
-<li>overrideredirect(True) - Sem bordas</li>
-<li>place(relx=0.5, rely=0.5) - Centralizado</li>
+<li><strong>Detecção Inteligente</strong>: Prioriza IPs na faixa definida em <code>PREFIXO_REDE</code> com fallback para <code>socket.getaddrinfo</code>.</li>
+<li><strong>Gerenciamento de Memória</strong>: Implementação de <code>gc.collect()</code> em ciclos estratégicos para evitar vazamentos de memória.</li>
+<li><strong>Interface Adaptativa</strong>: O tamanho do overlay se ajusta dinamicamente ao comprimento do IP ou da frase comemorativa.</li>
+<li><strong>Persistência</strong>: Datas personalizadas são salvas em um arquivo JSON local, permitindo edições sem alterar o código-fonte.</li>
 </ol>
-<h2 id="posicionamento">Posicionamento</h2>
-<p>Canto inferior direito:</p>
-<pre><code>┌─ 155px da direita ──┐
-│                     │
-│                 60px│ ← Distância da taskbar
-│   [ 192.168.0.13 ] │
-└─────────────────────┘
-</code></pre>
 <h2 id="como-usar">Como Usar</h2>
 <ol>
-<li>Execute o script ou EXE</li>
-<li>IP aparece no canto inferior direito</li>
-<li>Duplo clique para fechar</li>
-<li>Funciona 24/7 sem impacto no sistema</li>
+<li><strong>Execução</strong>: Rode o script <code>python ipNotificator.py</code> ou o executável.</li>
+<li><strong>Interação</strong>:<ul>
+<li><strong>Botão Direito</strong>: Abre o menu de opções (Copiar, Atualizar, Editar).</li>
+<li><strong>Triplo Clique</strong>: Fecha o aplicativo com segurança.</li>
+<li><strong>Clique Simples</strong>: Interage com o contador interno (Easter Egg).</li>
+</ul>
+</li>
+<li><strong>Edição de Datas</strong>: No menu "Editar Datas", use o formato <code>DD-MM | 🚀 Frase</code> para personalizar seus alertas.</li>
 </ol>
-<h2 id="solucao-de-problemas">Solução de Problemas</h2>
-<p>IP não aparece:
-→ Verifique firewall/antivírus
-→ Execute como administrador</p>
-<p>Posição errada:
-→ Ajuste HORIZONTAL/VERTICAL</p>
-<p>Consumo de RAM:
-→ Normal: 9 - 14 MB é OTIMIZADO!</p>
+<h2 id="instalacao-e-compilacao">Instalação e Compilação</h2>
+<p>Para transformar o script em um executável Windows:</p>
+<pre><code class="language-bash">pip install pyinstaller
+pyinstaller --onefile --noconsole --windowed --icon=app.ico ipNotificator.py
+</code></pre>
+<hr />
+<blockquote>
+<p><strong>Dica</strong>: Se o IP não aparecer, verifique se o seu <code>PREFIXO_REDE</code> corresponde ao início do seu IP local (ex: 10.0 ou 192.168).</p>
+<p>Consumo de RAM: Normal: 9 - 14 MB é OTIMIZADO!</p>
+</blockquote>
 <h2 id="licenca">Licença</h2>
 <p>MIT License - Uso livre para fins pessoais/commerciais
 © 2026 - Prefeitura Municipal de Monte Santo de Minas</p>
@@ -298,5 +323,5 @@ pyinstaller --onefile --noconsole --windowed ipNotificator.py</p>
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-01-17 19:46:01.268646+00:00
+Build Date UTC : 2026-01-20 16:48:14.533465+00:00
 -->
