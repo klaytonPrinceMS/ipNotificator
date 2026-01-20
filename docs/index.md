@@ -1,7 +1,10 @@
-# ipNotificator - IP Flutuante - Monitor de Rede
+# ipNotificator - IP Flutuante & Monitor de Eventos
 
 ## Descrição
-Overlay transparente que exibe o IP interno da rede em tempo real no canto inferior direito da tela. Perfeito para administradores de rede, desenvolvedores e técnicos.
+O **ipNotificator** é um overlay minimalista e ultra-leve projetado para exibir o endereço IP 
+interno da rede em tempo real, agora com um sistema integrado de **datas comemorativas**. 
+Posicionado discretamente no canto inferior direito, ele é a ferramenta ideal para administradores 
+de rede, desenvolvedores e técnicos que precisam dessa informação de forma rápida sem interrupções.
 
 ## Características
 - Sempre visível (mas não atrapalha)
@@ -10,85 +13,83 @@ Overlay transparente que exibe o IP interno da rede em tempo real no canto infer
 - Tamanho dinâmico - adapta ao IP (192.xxx.xxx.xxx)
 - Auto-posicionamento - funciona em qualquer resolução
 - Monitoramento automático de mudanças de IP/resolução
-- Fechar: Duplo clique no texto
+- Fechar: Triplo clique no texto
 - Ultra leve: ~9 MB RAM, 0% CPU quando convertido para executavel
+- **Sistema de Datas Comemorativas**: Exibe emojis e frases personalizadas em datas específicas (Natal, Ano Novo, Dia do Programador, etc.).
+- **Menu de Contexto (Botão Direito)**:
+    - **Copiar IP**: Copia instantaneamente o endereço para a área de transferência.
+    - **Atualizar**: Força a atualização do IP e recarrega as datas.
+    - **Editar Datas**: Interface gráfica integrada para adicionar ou modificar eventos.
+- **Otimização Extrema**: Uso de cache global e Garbage Collector (GC) para manter o consumo de RAM entre 9MB e 14MB.
+- **Easter Eggs**: Interações especiais escondidas (como o modo antigravidade e o contador 42).
 
 ## Consumo de Recursos
-Memória RAM: 9 MB
-CPU: 0%
-Tamanho EXE: ~13 MB (PyInstaller)
+| Recurso | Desempenho |
+| :--- | :--- |
+| **Memória RAM** | ~9 MB (Otimizado com GC) |
+| **CPU** | 0% (Monitoramento em background) |
+| **Tamanho EXE** | ~13 MB (PyInstaller) |
+| **Refresh Rate** | 15 segundos (Inteligente) |
 
 ## Requisitos
-- Python 3.6+
-- Tkinter (padrão do Python)
-- Windows 10/11
+- **Python 3.6+**
+- **Tkinter** (Biblioteca padrão do Python)
+- **Windows 10/11** (Suporte a transparência e fontes do sistema)
 
 ## Configurações Personalizáveis
-```
+As configurações principais podem ser ajustadas diretamente no topo do script:
+
+
+
+## Configurações Personalizáveis
+```python
+
 TRANSPARENCIA   = 0.25          # 0.0 (invisível) a 1.0 (opaco)
 HORIZONTAL      = 110           # Distância da borda direita
 VERTICAL        = 60            # Distância da borda inferior
 COR_FUNDO       = 'black'       # Denição da cor de fundo
 COR_FONTE       = 'white'       # Definição da cor da fonte
-PREFIXO_REDE    = '192.168.'     # Sua trava universal
+PREFIXO_REDE    = '192.168.'    # Sua trava universal
+TAMANHO_FONTE   = 10            # Tamanho da fonte Consolas/Segoe UI
+CONFIG_FILE     = 'ip_widget_datas.json' # Arquivo de armazenamento das datas
 ```
-
 
 ## Estrutura do Projeto
-```
+```text
 ip_flutuante/
-├── ip_flutuante.py      # Script principal
-├── README.md            # Este arquivo
+├── ipNotificator.py      # Script principal (v1.3)
+├── ip_widget_datas.json  # Banco de dados de eventos (gerado automaticamente)
+├── README.md             # Documentação do projeto
 └── dist/
-    └── ipNotificator.py # Executável (após PyInstaller)
+    └── ipNotificator.exe # Executável final
 ```
-## Instalação
-
-### 1. Salvar Script
-Recomendado salvar como ipNotificator.py
-
-### 2. Executar Direto
-python ipNotificator.py
-
-### 3. PyInstaller (Executável)
-pip install pyinstaller
-pyinstaller --onefile --noconsole --windowed ipNotificator.py
-
 
 ## Funcionalidades Técnicas
-1. Detecta IP interno (192.x.x.x preferencial)
-2. Fallback: socket.gethostbyname()
-3. Loop after(1000ms) - Zero CPU
-4. winfo_screenwidth/height auto-ajuste
-5. overrideredirect(True) - Sem bordas
-6. place(relx=0.5, rely=0.5) - Centralizado
+1.  **Detecção Inteligente**: Prioriza IPs na faixa definida em `PREFIXO_REDE` com fallback para `socket.getaddrinfo`.
+2.  **Gerenciamento de Memória**: Implementação de `gc.collect()` em ciclos estratégicos para evitar vazamentos de memória.
+3.  **Interface Adaptativa**: O tamanho do overlay se ajusta dinamicamente ao comprimento do IP ou da frase comemorativa.
+4.  **Persistência**: Datas personalizadas são salvas em um arquivo JSON local, permitindo edições sem alterar o código-fonte.
 
-
-## Posicionamento
-Canto inferior direito:
-```
-┌─ 155px da direita ──┐
-│                     │
-│                 60px│ ← Distância da taskbar
-│   [ 192.168.0.13 ] │
-└─────────────────────┘
-```
 ## Como Usar
-1. Execute o script ou EXE
-2. IP aparece no canto inferior direito
-3. Duplo clique para fechar
-4. Funciona 24/7 sem impacto no sistema
+1.  **Execução**: Rode o script `python ipNotificator.py` ou o executável.
+2.  **Interação**:
+    - **Botão Direito**: Abre o menu de opções (Copiar, Atualizar, Editar).
+    - **Triplo Clique**: Fecha o aplicativo com segurança.
+    - **Clique Simples**: Interage com o contador interno (Easter Egg).
+3.  **Edição de Datas**: No menu "Editar Datas", use o formato `DD-MM | 🚀 Frase` para personalizar seus alertas.
 
-## Solução de Problemas
-IP não aparece:
-→ Verifique firewall/antivírus
-→ Execute como administrador
+## Instalação e Compilação
+Para transformar o script em um executável Windows:
+```bash
+pip install pyinstaller
+pyinstaller --onefile --noconsole --windowed --icon=app.ico ipNotificator.py
+```
 
-Posição errada:
-→ Ajuste HORIZONTAL/VERTICAL
+---
+> **Dica**: Se o IP não aparecer, verifique se o seu `PREFIXO_REDE` corresponde ao início do seu IP local (ex: 10.0 ou 192.168).
 
-Consumo de RAM:
-→ Normal: 9 - 14 MB é OTIMIZADO!
+
+> Consumo de RAM: Normal: 9 - 14 MB é OTIMIZADO!
 
 ## Licença
 MIT License - Uso livre para fins pessoais/commerciais
