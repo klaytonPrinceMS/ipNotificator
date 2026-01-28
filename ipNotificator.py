@@ -14,7 +14,7 @@ VERSAO = '1.3.20260120'
 COR_FUNDO = 'black'
 COR_FONTE = 'white'
 TAMANHO_FONTE = 10
-PREFIXO_REDE = '192.168'
+PREFIXO_REDE = '172.16'
 POSICIONAR = False
 CONFIG_FILE = 'ip_widget_datas.json'
 

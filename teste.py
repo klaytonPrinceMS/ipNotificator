@@ -3,200 +3,490 @@ from tkinter import messagebox
 import socket
 import os
 import webbrowser
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import gc
+import urllib.request
+import xml.etree.ElementTree as ET
+import time
 
-# Configurações
+# Configurações ULTRA OTIMIZADAS
 TRANSPARENCIA = 0.45
-VERSAO = '1.5.20260120-FIXED'
+VERSAO = '1.3.20260120'
 COR_FUNDO = 'black'
 COR_FONTE = 'white'
 TAMANHO_FONTE = 10
 PREFIXO_REDE = '172.16'
+POSICIONAR = False
 CONFIG_FILE = 'ip_widget_datas.json'
 
-# Datas Padrão (Imutáveis)
+# RSS CONFIG
+RSS_URL = "https://news.google.com/rss/search?q=ataque+hacker+prefeitura+OR+invas%C3%A3o+sistemas+prefeitura+Brasil+when:7d&hl=pt-BR&gl=BR&ceid=BR:pt-419"
+CACHE_FILE = 'rss_cache.json'
+CACHE_DURATION = 1800  # 30 minutos
+
+# CACHE GLOBAL
 DATAS_PADRAO = {
     "06-01": {"emoji": "🎊", "frase": "Feliz Ano Novo"},
-    "13-09": {"emoji": "🧑🏽‍💻", "frase": "import antigravity"},
+    "13-09": {"emoji": "🧑🏽‍💻", "frase": "import antigravity", "easter": True},
     "25-12": {"emoji": "🎅🎄", "frase": "Feliz Natal"},
 }
 
-
-class DataManager:
-    """Gerencia datas com cache e persistência."""
-    _cache = None
-    _last_mod = 0
-
-    @classmethod
-    def carregar(cls):
-        try:
-            if os.path.exists(CONFIG_FILE):
-                mtime = os.path.getmtime(CONFIG_FILE)
-                if mtime > cls._last_mod:
-                    with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-                        custom = json.load(f)
-                    cls._cache = {**DATAS_PADRAO, **custom}
-                    cls._last_mod = mtime
-            elif cls._cache is None:
-                cls._cache = DATAS_PADRAO.copy()
-        except Exception:
-            cls._cache = DATAS_PADRAO.copy()
-        return cls._cache
-
-    @classmethod
-    def salvar(cls, dados):
-        try:
-            with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
-                json.dump(dados, f, ensure_ascii=False, indent=2)
-            cls._last_mod = 0  # Força recarregamento no próximo 'carregar'
-            cls._cache = None
-            return True
-        except Exception:
-            return False
+_datas_cache = None
+_datas_cache_data = None
+_rss_cache = []
+_rss_cache_timestamp = 0
+_current_news_index = 0
 
 
-def get_ip_eficiente():
+class NewsTicker(tk.Canvas):
+    """Ticker FLUIDO da esquerda para a direita com tempo de leitura"""
+
+    def __init__(self, parent):
+        # ✅ CORRIGIDO: Removeu **kwargs conflitante
+        super().__init__(parent, height=25, bg=COR_FUNDO, highlightthickness=0)
+        self.text = ""
+        self.text_id = None
+        self.pos_x = 0
+        self.anim_id = None
+        self.news_cycle_id = None
+        self.speed = 2
+        self.wait_time = 3000  # 3s pausa para leitura
+        self.canvas_width = 300  # Largura estimada inicial
+
+    def set_news(self, text):
+        """Define nova notícia e reinicia animação"""
+        self.text = text
+        self.pos_x = self.canvas_width + 50  # Começa fora da tela (direita)
+        self.start_animation()
+
+    def start_animation(self):
+        """Inicia animação fluida"""
+        if self.anim_id:
+            self.after_cancel(self.anim_id)
+
+        self.delete("all")
+        if self.text:
+            self.text_id = self.create_text(self.pos_x, 13, text=self.text,
+                                            fill='#00ff00', font=('Consolas', 10, 'bold'),
+                                            anchor='w', tags='ticker')
+        self.update_canvas_width()
+        self.animate()
+
+    def update_canvas_width(self):
+        """Atualiza largura do canvas"""
+        self.canvas_width = max(self.winfo_width(), 200)
+
+    def animate(self):
+        """Animação contínua L→R fluida"""
+        self.delete("all")
+        self.update_canvas_width()
+
+        if self.text:
+            self.create_text(self.pos_x, 13, text=self.text,
+                             fill='#00ff00', font=('Consolas', 10, 'bold'),
+                             anchor='w', tags='ticker')
+
+        # Move para esquerda
+        self.pos_x -= self.speed
+
+        # Se saiu completamente da tela, pausa para leitura
+        text_width = len(self.text) * 8
+        if self.pos_x < -text_width - 20:
+            # Pausa 3s para leitura completa
+            self.after(self.wait_time, self.reset_position)
+        else:
+            # Continua animação fluida (50ms = ~60fps)
+            self.anim_id = self.after(50, self.animate)
+
+    def reset_position(self):
+        """Reseta posição para próxima iteração"""
+        self.pos_x = self.canvas_width + 50
+        self.anim_id = self.after(50, self.animate)
+
+    def start_news_cycle(self):
+        """Ciclo de notícias - nova a cada 25s"""
+        if self.news_cycle_id:
+            self.after_cancel(self.news_cycle_id)
+
+        def cycle():
+            news_text = get_proxima_noticia()
+            self.set_news(news_text)
+            self.news_cycle_id = self.after(25000, cycle)
+
+        cycle()
+
+
+def carregar_rss_simples():
+    """RSS simples SEM dependências externas"""
+    global _rss_cache, _rss_cache_timestamp, _current_news_index
+
+    agora = time.time()
+    if agora - _rss_cache_timestamp < CACHE_DURATION and _rss_cache:
+        return _rss_cache
+
     try:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.settimeout(0.1)
-            s.connect(('10.255.255.255', 1))
-            ip = s.getsockname()[0]
-            return ip if ip.startswith(PREFIXO_REDE) else f"IP: {ip}"
-    except Exception:
+        with urllib.request.urlopen(RSS_URL, timeout=10) as response:
+            xml_content = response.read().decode('utf-8')
+
+        root = ET.fromstring(xml_content)
+        noticias = []
+
+        for item in root.findall('.//item'):
+            title_elem = item.find('title')
+            pubdate_elem = item.find('pubDate')
+
+            if title_elem is not None and title_elem.text:
+                titulo = title_elem.text.strip()
+                data = "Data não disponível"
+
+                if pubdate_elem is not None and pubdate_elem.text:
+                    data_raw = pubdate_elem.text
+                    data = data_raw[:16] if len(data_raw) > 16 else data_raw
+
+                noticias.append(f"📰 {titulo} | {data}")
+
+        _rss_cache = noticias[:8]
+        _rss_cache_timestamp = agora
+        _current_news_index = 0
+
+        cache_data = {'noticias': _rss_cache, 'timestamp': agora}
         try:
-            return socket.gethostbyname(socket.gethostname())
+            with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+                json.dump(cache_data, f, ensure_ascii=False)
         except:
-            return "Erro de Rede"
+            pass
+
+    except Exception as e:
+        print(f"Erro RSS: {e}")
+        try:
+            if os.path.exists(CACHE_FILE):
+                with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+                    cache_data = json.load(f)
+                    if agora - cache_data['timestamp'] < CACHE_DURATION * 2:
+                        _rss_cache = cache_data['noticias']
+        except:
+            _rss_cache = ["📰 Aguardando notícias de cibersegurança..."]
+
+    return _rss_cache
+
+
+def get_proxima_noticia():
+    """Rotaciona notícias"""
+    global _current_news_index
+    noticias = carregar_rss_simples()
+    if not noticias:
+        return "📰 Carregando notícias..."
+
+    noticia = noticias[_current_news_index]
+    _current_news_index = (_current_news_index + 1) % len(noticias)
+    return noticia
+
+
+def carregar_datas_otimizado():
+    global _datas_cache, _datas_cache_data
+    try:
+        if os.path.exists(CONFIG_FILE):
+            mod_time = os.path.getmtime(CONFIG_FILE)
+            if _datas_cache_data != mod_time:
+                with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                    custom = json.load(f)
+                _datas_cache = {**DATAS_PADRAO, **custom}
+                _datas_cache_data = mod_time
+                gc.collect()
+        else:
+            _datas_cache = DATAS_PADRAO
+    except:
+        _datas_cache = DATAS_PADRAO
+    return _datas_cache
+
+
+def salvar_datas_personalizadas(datas):
+    try:
+        with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+            json.dump(datas, f, indent=2, ensure_ascii=False)
+        gc.collect()
+        return True
+    except:
+        return False
+
+
+def get_data_hoje_otimizada():
+    global _datas_cache
+    if _datas_cache is None:
+        carregar_datas_otimizado()
+
+    hoje = datetime.now()
+    dia_hoje = hoje.day
+    mes_hoje = hoje.month
+
+    data_key = f"{dia_hoje:02d}-{mes_hoje:02d}"
+    if data_key in _datas_cache:
+        return _datas_cache[data_key]
+
+    for data_key, info in _datas_cache.items():
+        try:
+            dia, mes = map(int, data_key.split("-"))
+            data_com = datetime(hoje.year, mes, dia)
+            inicio = data_com - timedelta(days=7)
+            fim = data_com + timedelta(days=1)
+            if inicio <= hoje <= fim:
+                return info
+        except:
+            continue
+    return None
+
+
+def get_internal_ip_cache():
+    if not hasattr(get_internal_ip_cache, "cache"):
+        get_internal_ip_cache.cache = None
+        get_internal_ip_cache.timestamp = 0
+
+    agora = datetime.now().timestamp()
+    if agora - get_internal_ip_cache.timestamp > 30:
+        try:
+            hostname = socket.gethostname()
+            addresses = socket.getaddrinfo(hostname, None)
+            ips = [addr[4][0] for addr in addresses if ':' not in addr[4][0]]
+            for ip in ips:
+                if ip.startswith(PREFIXO_REDE):
+                    get_internal_ip_cache.cache = ip
+                    break
+            else:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.settimeout(0.1)
+                try:
+                    s.connect(('192.168.255.255', 1))
+                    ip_teste = s.getsockname()[0]
+                    if ip_teste.startswith(PREFIXO_REDE):
+                        get_internal_ip_cache.cache = ip_teste
+                except:
+                    get_internal_ip_cache.cache = 'IP Fora da Faixa'
+                finally:
+                    s.close()
+        except:
+            get_internal_ip_cache.cache = 'Erro ao Localizar'
+        get_internal_ip_cache.timestamp = agora
+    return get_internal_ip_cache.cache
 
 
 class IPWidget:
     def __init__(self, root):
         self.root = root
         self.ip_atual = ""
-        self.com_atual = None
+        self.res_atual = (0, 0)
+        self.comemoracao_atual = None
+        self.click_count = 0
+        self.last_click = 0
+        self.easter42 = False
+        self.monitor_id = None
 
-        root.attributes('-topmost', True)
-        root.attributes('-alpha', TRANSPARENCIA)
-        root.overrideredirect(True)
-        root.configure(bg=COR_FUNDO)
-
-        self.label_com = tk.Label(root, text="", font=('Segoe UI Emoji', TAMANHO_FONTE), fg=COR_FONTE, bg=COR_FUNDO)
-        self.label_ip = tk.Label(root, text="...", font=('Consolas', TAMANHO_FONTE, 'bold'), fg=COR_FONTE, bg=COR_FUNDO)
-
-        for w in (root, self.label_com, self.label_ip):
-            w.bind('<Triple-Button-1>', lambda e: root.destroy())
-            w.bind('<Button-3>', self.mostrar_menu)
-            w.bind('<Button-1>', self.copiar_ip)
-
-        self.menu = tk.Menu(root, tearoff=0)
-        self.menu.add_command(label="Copiar IP", command=self.copiar_ip)
-        self.menu.add_command(label="Editar Datas", command=self.abrir_editor)
-        self.menu.add_separator()
-        self.menu.add_command(label="Sair", command=root.destroy)
-
-        self.atualizar_ciclo()
-
-    def atualizar_ciclo(self):
-        ip = get_ip_eficiente()
-        datas = DataManager.carregar()
-        hoje_str = datetime.now().strftime("%d-%m")
-        com = datas.get(hoje_str)
-
-        if ip != self.ip_atual or com != self.com_atual:
-            self.ip_atual = ip
-            self.com_atual = com
-            self.label_ip.config(text=ip)
-
-            if com:
-                self.label_com.config(text=f"{com['emoji']} {com['frase']}")
-                self.label_com.pack(side="top", pady=(2, 0))
-            else:
-                self.label_com.pack_forget()
-
-            self.label_ip.pack(side="top", padx=5, pady=2)
-            self.ajustar_posicao()
-            gc.collect()
-
-        self.root.after(30000, self.atualizar_ciclo)
-
-    def ajustar_posicao(self):
+        self.root.attributes('-topmost', POSICIONAR)
+        self.root.attributes('-alpha', TRANSPARENCIA)
+        self.root.overrideredirect(True)
+        self.root.configure(bg=COR_FUNDO)
         self.root.update_idletasks()
-        w, h = self.root.winfo_reqwidth(), self.root.winfo_reqheight()
-        sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
-        self.root.geometry(f"{w}x{h}+{sw - w - 10}+{sh - h - 50}")
 
-    def mostrar_menu(self, event):
-        self.menu.post(event.x_root, event.y_root)
+        self.frame = tk.Frame(root, bg=COR_FUNDO)
+        self.frame.pack(padx=5, pady=3)
 
-    def copiar_ip(self, event=None):
-        self.root.clipboard_clear()
-        self.root.clipboard_append(self.ip_atual)
-        self.label_ip.config(fg='cyan')
-        self.root.after(500, lambda: self.label_ip.config(fg=COR_FONTE))
+        self.label_comemoracao = tk.Label(self.frame, text="",
+                                          font=('Segoe UI Emoji', TAMANHO_FONTE),
+                                          fg=COR_FONTE, bg=COR_FUNDO)
+        self.label_comemoracao.pack()
 
-    def abrir_editor(self):
+        self.label_ip = tk.Label(self.frame, text="Iniciando...",
+                                 font=('Consolas', TAMANHO_FONTE, 'bold'),
+                                 fg=COR_FONTE, bg=COR_FUNDO)
+        self.label_ip.pack()
+
+        # ✅ TICKER CORRIGIDO
+        self.ticker = NewsTicker(self.frame)
+        self.ticker.pack(fill='x', pady=(5, 0))
+
+        for widget in [self.label_ip, self.label_comemoracao, self.ticker, self.frame]:
+            widget.bind('<Triple-Button-1>', self.fechar)
+            widget.bind('<Button-1>', self.clique_esquerdo)
+            widget.bind('<Button-3>', self.menu_contexto)
+
+        self.criar_menu()
+        self.verificar_atualizacoes()
+        self.ticker.start_news_cycle()
+
+    def agendar_monitoramento(self):
+        if self.monitor_id:
+            self.root.after_cancel(self.monitor_id)
+        if not self.root.winfo_viewable():
+            return
+        self.monitor_id = self.root.after(15000, self.verificar_atualizacoes)
+
+    def verificar_atualizacoes(self):
+        self.monitor_id = None
+        ip_novo = get_internal_ip_cache()
+        res_novo = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
+        com_novo = get_data_hoje_otimizada()
+
+        mudou = (ip_novo != self.ip_atual or
+                 res_novo != self.res_atual or
+                 com_novo != self.comemoracao_atual)
+
+        if mudou:
+            self.ip_atual = ip_novo
+            self.res_atual = res_novo
+            self.comemoracao_atual = com_novo
+            self.label_ip.config(text=ip_novo)
+
+            if com_novo:
+                self.label_comemoracao.config(text=f"{com_novo['emoji']} {com_novo['frase']}")
+                self.label_comemoracao.pack(pady=2)
+                self.ticker.pack_forget()
+            else:
+                self.label_comemoracao.pack_forget()
+                self.ticker.pack(fill='x', pady=(5, 0))
+                self.ticker.start_news_cycle()
+
+            self.redimensionar()
+
+        self.agendar_monitoramento()
+        gc.collect()
+
+    def redimensionar(self):
+        largura_ip = max(115, len(self.ip_atual) * 10)
+        if self.comemoracao_atual:
+            larg_com = len(f"{self.comemoracao_atual['emoji']} {self.comemoracao_atual['frase']}") * 9
+            largura = max(largura_ip, larg_com) + 20
+            altura = 55
+        else:
+            largura = largura_ip + 20
+            altura = 75  # + ticker
+
+        sw, sh = self.res_atual
+        x = sw - largura - 10
+        y = sh - altura - 50
+        self.root.geometry(f'{largura}x{altura}+{x}+{y}')
+
+    def fechar(self, event):
+        if self.monitor_id:
+            self.root.after_cancel(self.monitor_id)
+        self.root.destroy()
+
+    def clique_esquerdo(self, event):
+        agora = datetime.now()
+        if (agora - datetime.fromtimestamp(self.last_click)).total_seconds() > 2:
+            self.click_count = 0
+        self.click_count += 1
+        self.last_click = agora.timestamp()
+        if self.click_count == 42 and not self.easter42:
+            self.easter42 = True
+            cor = self.label_ip['fg']
+            self.label_ip.config(text="🏆 EASTER EGG 42! 🏆", fg='gold',
+                                 font=('Consolas', TAMANHO_FONTE + 2, 'bold'))
+            self.root.after(3000, lambda: self.label_ip.config(
+                text=self.ip_atual, fg=cor, font=('Consolas', TAMANHO_FONTE, 'bold')))
+
+    def criar_menu(self):
+        self.menu = tk.Menu(self.root, tearoff=0)
+        self.menu.add_command(label="Copiar IP", command=self.copiar_ip)
+        self.menu.add_command(label="Atualizar", command=self.atualizar)
+        self.menu.add_separator()
+        self.menu.add_command(label="Editar Datas", command=self.editor_datas)
+        self.menu.add_command(label="🔄 Atualizar Notícias", command=self.atualizar_rss)
+
+    def menu_contexto(self, event):
+        com = get_data_hoje_otimizada()
+        if com and "antigravity" in com.get('frase', ''):
+            try:
+                webbrowser.open('https://mrdoob.com/projects/chromeexperiments/google-gravity/')
+                self.label_ip.config(text="🛸 Antigravidade!")
+                self.root.after(2000, lambda: self.label_ip.config(text=self.ip_atual))
+            except:
+                pass
+        else:
+            try:
+                self.menu.tk_popup(event.x_root, event.y_root)
+            finally:
+                self.menu.grab_release()
+
+    def copiar_ip(self):
+        if self.ip_atual and 'Erro' not in self.ip_atual:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(self.ip_atual)
+            self.label_ip.config(fg='cyan')
+            self.root.after(300, lambda: self.label_ip.config(fg=COR_FONTE))
+
+    def atualizar(self):
+        carregar_datas_otimizado()
+        self.verificar_atualizacoes()
+
+    def atualizar_rss(self):
+        global _rss_cache_timestamp, _current_news_index
+        _rss_cache_timestamp = 0
+        _current_news_index = 0
+        if hasattr(self, 'ticker'):
+            self.ticker.start_news_cycle()
+
+    def editor_datas(self):
         editor = tk.Toplevel(self.root)
-        editor.title("Editor de Datas")
-        editor.geometry("450x400")
-        editor.attributes('-topmost', True)
+        editor.title(f"DTI - PMMSM          {VERSAO}")
+        editor.geometry("600x500")
+        editor.configure(bg='#2b2b2b')
+        editor.transient(self.root)
+        editor.grab_set()
 
-        tk.Label(editor, text="Formato: DD-MM | Emoji Frase", font=('Arial', 9, 'bold')).pack(pady=5)
+        tk.Label(editor, text="DD-MM | emoji frase\nEx: 20-01 | 🎉 Hoje!",
+                 bg='#2b2b2b', fg='#FFD700', font=('Consolas', 10)).pack(pady=10)
 
-        txt = tk.Text(editor, font=('Consolas', 10), undo=True)
-        txt.pack(fill="both", expand=True, padx=10, pady=5)
+        frame_txt = tk.Frame(editor, bg='#2b2b2b')
+        frame_txt.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
-        # Carrega apenas as datas customizadas para edição
-        datas_completas = DataManager.carregar()
-        custom_data = {k: v for k, v in datas_completas.items() if k not in DATAS_PADRAO or DATAS_PADRAO[k] != v}
+        sb = tk.Scrollbar(frame_txt)
+        sb.pack(side=tk.RIGHT, fill=tk.Y)
+        txt = tk.Text(frame_txt, bg='#1e1e1e', fg='white', font=('Consolas', 10),
+                      yscrollcommand=sb.set, wrap=tk.WORD, height=16)
+        txt.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        sb.config(command=txt.yview)
 
-        content = ""
-        for k, v in sorted(datas_completas.items()):
-            content += f"{k} | {v['emoji']} {v['frase']}\n"
-        txt.insert("1.0", content.strip())
+        datas = carregar_datas_otimizado()
+        txt.delete("1.0", tk.END)
+        for data, info in sorted(datas.items()):
+            txt.insert(tk.END, f"{data} | {info['emoji']} {info['frase']}\n")
 
         def salvar():
-            novas_custom = {}
-            linhas = txt.get("1.0", "end-1c").split("\n")
-            for line in linhas:
-                if "|" in line:
-                    try:
-                        parts = line.split("|")
-                        data_key = parts[0].strip()
-                        resto = parts[1].strip().split(maxsplit=1)
-                        if len(resto) >= 2:
-                            emoji, frase = resto[0], resto[1]
-                            # Só salva se for diferente do padrão
-                            if data_key not in DATAS_PADRAO or DATAS_PADRAO[data_key]['emoji'] != emoji or \
-                                    DATAS_PADRAO[data_key]['frase'] != frase:
-                                novas_custom[data_key] = {"emoji": emoji, "frase": frase}
-                    except:
-                        continue
+            novas = {}
+            for linha in txt.get("1.0", tk.END).strip().split('\n'):
+                if '|' in linha:
+                    data, resto = linha.split('|', 1)
+                    data, resto = data.strip(), resto.strip()
+                    partes = resto.split(maxsplit=1)
+                    emoji = partes[0] if partes else "🎉"
+                    frase = partes[1] if len(partes) > 1 else "Evento"
+                    novas[data] = {"emoji": emoji, "frase": frase}
 
-            if DataManager.salvar(novas_custom):
-                messagebox.showinfo("Sucesso", "Datas salvas com sucesso!")
+            if salvar_datas_personalizadas(novas):
                 editor.destroy()
-                self.atualizar_ciclo()
+                self.atualizar()
+                messagebox.showinfo("✅", f"Salvas {len(novas)} datas!")
             else:
-                messagebox.showerror("Erro", "Não foi possível salvar o arquivo.")
+                messagebox.showerror("❌", "Erro ao salvar")
 
-        btn_frame = tk.Frame(editor)
-        btn_frame.pack(pady=10)
-        tk.Button(btn_frame, text="Cancelar", command=editor.destroy, width=10).pack(side="left", padx=5)
-        tk.Button(btn_frame, text="Salvar", command=salvar, bg="#28a745", fg="white", width=10).pack(side="left",
-                                                                                                     padx=5)
+        tk.Button(editor, text="💾 SALVAR", command=salvar, bg='#28a745', fg='white',
+                  font=('Consolas', 11, 'bold'), height=2, width=12).pack(pady=10)
+        tk.Button(editor, text="❌ Fechar", command=editor.destroy,
+                  bg='#dc3545', fg='white', font=('Consolas', 11, 'bold'),
+                  height=2, width=12).pack(pady=5)
 
 
 if __name__ == "__main__":
     if os.name == 'nt':
-        try:
-            import ctypes
+        import ctypes
 
+        try:
             ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
         except:
             pass
 
+    gc.collect()
     root = tk.Tk()
     app = IPWidget(root)
     root.mainloop()
+    gc.collect()
